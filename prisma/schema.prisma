@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Admin {
+  id       Int    @id @default(autoincrement())
+  username String
+  password String
+}
+
+model Menu {
+  id          Int    @id @default(autoincrement())
+  name        String
+  image       String
+  description String
+  ingredients Json
+  price       Float
+  popular     Boolean
+  category    String
+}
+
+model Gallery {
+  id       Int    @id @default(autoincrement())
+  image    String
+  title    String
+  message  String
+}
+
+model Events {
+  id     Int @id @default(autoincrement())
+  title  String
+  description String
+  image       String
+  startDate   DateTime
+  endDate     DateTime
+  ticketPrice Float
+  location    String
+  featured    Boolean
+  maxRegistrants Int @default(50)
+  registrants EventRegistrants[]
+}
+
+model EventRegistrants {
+  id          Int @id @default(autoincrement())
+  name        String
+  email       String
+  phone       String
+  event       Events @relation(fields: [eventId], references: [id])
+  eventId     Int
+}
+
+model Branches {
+  id          Int @id @default(autoincrement())
+  name        String
+  image       String
+  address     String
+  phone       String
+  hours       String
+  latitude    Float
+  longitude   Float
+  description String
+}
+
+model Contacts {
+  id            Int    @id @default(autoincrement())
+  Full_Name     String
+  Phone         String
+  title         String
+  message       String
+}

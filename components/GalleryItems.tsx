@@ -1,10 +1,28 @@
-import { gallery } from "@/constants";
+"use client";
+
+import { useEffect, useState } from "react";
+
+import { gallery as fallbackGallery } from "@/constants";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import Link from "next/link";
+import { fetchingGallery, Gallery } from "@/lib/actions";
 
 const GalleryItems = ({ preview = false }: { preview?: boolean }) => {
-  const items = preview ? gallery.slice(0, 4) : gallery;
+  const [items, setItems] = useState<Gallery[]>(fallbackGallery);
+
+  useEffect(() => {
+    const loadGallery = async () => {
+      const response = await fetchingGallery();
+      if (response?.length) {
+        setItems(response);
+      }
+    };
+
+    void loadGallery();
+  }, []);
+
+  const visibleItems = preview ? items.slice(0, 4) : items;
 
   return (
     <section className="cafe-shell">
@@ -34,7 +52,7 @@ const GalleryItems = ({ preview = false }: { preview?: boolean }) => {
         </div>
 
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          {items.map((item, index) => (
+          {visibleItems.map((item, index) => (
             <article
               key={item.id}
               className={`relative overflow-hidden rounded-[2rem] border border-white/10 ${

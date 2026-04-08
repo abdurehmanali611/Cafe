@@ -1,22 +1,41 @@
-import { events } from "@/constants";
+"use client";
+
+import { useEffect, useState } from "react";
+
+import { events as fallbackEvents } from "@/constants";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import Link from "next/link";
+import { Events, fetchingEvent } from "@/lib/actions";
+import EventReservationDrawer from "./EventReservationDrawer";
 
-const formatDate = (value: string) =>
-  new Date(value).toLocaleDateString("en-US", {
+const formatDate = (value: Date) =>
+  value.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
   });
 
-const formatTime = (value: string) =>
-  new Date(value).toLocaleTimeString("en-US", {
+const formatTime = (value: Date) =>
+  value.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
   });
 
 const EventItems = ({ preview = false }: { preview?: boolean }) => {
-  const items = preview ? events.slice(0, 3) : events;
+  const [items, setItems] = useState<Events[]>(fallbackEvents);
+
+  useEffect(() => {
+    const loadEvents = async () => {
+      const response = await fetchingEvent();
+      if (response?.length) {
+        setItems(response);
+      }
+    };
+
+    void loadEvents();
+  }, []);
+
+  const visibleItems = preview ? items.slice(0, 3) : items;
 
   return (
     <section className="cafe-shell">
@@ -46,7 +65,7 @@ const EventItems = ({ preview = false }: { preview?: boolean }) => {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <article
               key={item.id}
               className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/6 shadow-[0_20px_60px_-35px_rgba(0,0,0,0.8)]"
@@ -91,13 +110,11 @@ const EventItems = ({ preview = false }: { preview?: boolean }) => {
                     <p className="font-heading text-2xl text-white">
                       {item.ticketPrice} ETB
                     </p>
+                    <p className="mt-1 text-xs text-stone-300">
+                      {Math.max(item.maxRegistrants - (item._count?.registrants ?? 0), 0)} seats left
+                    </p>
                   </div>
-                  <Link
-                    href="/Contact"
-                    className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
-                  >
-                    Reserve
-                  </Link>
+                  <EventReservationDrawer event={item} />
                 </div>
               </div>
             </article>

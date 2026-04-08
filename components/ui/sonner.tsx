@@ -1,10 +1,63 @@
 "use client"
 
+import * as React from "react"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { CheckmarkCircle02Icon, InformationCircleIcon, Alert02Icon, MultiplicationSignCircleIcon, Loading03Icon } from "@hugeicons/core-free-icons"
 
 const Toaster = ({ ...props }: ToasterProps) => {
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const fallbackMatchMedia = (query: string): MediaQueryList =>
+      ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }) as MediaQueryList
+
+    const originalMatchMedia = window.matchMedia?.bind(window)
+
+    window.matchMedia = ((query: string) => {
+      const mediaQuery = originalMatchMedia?.(query)
+
+      if (!mediaQuery) {
+        return fallbackMatchMedia(query)
+      }
+
+      if (!("addListener" in mediaQuery)) {
+        ;(mediaQuery as MediaQueryList & {
+          addListener?: (listener: EventListenerOrEventListenerObject) => void
+          removeListener?: (listener: EventListenerOrEventListenerObject) => void
+        }).addListener = () => {}
+      }
+
+      if (!("removeListener" in mediaQuery)) {
+        ;(mediaQuery as MediaQueryList & {
+          addListener?: (listener: EventListenerOrEventListenerObject) => void
+          removeListener?: (listener: EventListenerOrEventListenerObject) => void
+        }).removeListener = () => {}
+      }
+
+      return mediaQuery
+    }) as typeof window.matchMedia
+
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return null
+  }
+
   return (
     <Sonner
       theme="dark"

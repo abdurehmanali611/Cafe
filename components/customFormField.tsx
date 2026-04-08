@@ -5,8 +5,10 @@ import * as React from "react";
 import { format } from "date-fns";
 import { CalendarIcon, ImageIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Image from "next/image";
 import type { Control, FieldPath, FieldValues } from "react-hook-form";
 import { Controller } from "react-hook-form";
+import { toast } from "sonner";
 
 import { PhoneInput } from "@/components/phone-input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -26,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 export enum formFieldTypes {
   INPUT = "input",
@@ -84,6 +87,104 @@ type AlertDialogProps<T extends FieldValues> = BaseProps<T> & {
 type CustomFormFieldProps<T extends FieldValues> =
   | ControlledProps<T>
   | AlertDialogProps<T>;
+
+const CloudinaryImageUploader = ({
+  id,
+  value,
+  placeholder,
+  accept,
+  disabled,
+  onChange,
+}: {
+  id: string;
+  value: unknown;
+  placeholder?: string;
+  accept?: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}) => {
+  const [previewUrl, setPreviewUrl] = React.useState<string>(
+    typeof value === "string" ? value : "",
+  );
+  const [uploading, setUploading] = React.useState(false);
+
+  React.useEffect(() => {
+    setPreviewUrl(typeof value === "string" ? value : "");
+  }, [value]);
+
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const localPreview = URL.createObjectURL(file);
+    setPreviewUrl(localPreview);
+    setUploading(true);
+
+    try {
+      const uploadedUrl = await uploadImageToCloudinary(file);
+      onChange(uploadedUrl);
+      setPreviewUrl(uploadedUrl);
+      toast.success("Image uploaded successfully");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Image upload failed";
+      toast.error(message);
+      setPreviewUrl(typeof value === "string" ? value : "");
+    } finally {
+      URL.revokeObjectURL(localPreview);
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-dashed border-white/15 bg-white/6 p-4">
+      <label
+        htmlFor={id}
+        className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-8 text-center"
+      >
+        {previewUrl ? (
+          <div className="relative h-40 w-full overflow-hidden rounded-2xl border border-white/10">
+            <Image
+              src={previewUrl}
+              alt="Uploaded preview"
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-white opacity-0 transition-opacity hover:opacity-100">
+              {uploading ? "Uploading..." : "Change image"}
+            </div>
+          </div>
+        ) : (
+          <>
+            <HugeiconsIcon icon={ImageIcon} strokeWidth={2} className="size-8 text-amber-300" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-stone-100">
+                {uploading ? "Uploading image..." : placeholder ?? "Upload an image"}
+              </p>
+              <p className="text-xs text-stone-400">
+                PNG, JPG, or WebP supported
+              </p>
+            </div>
+          </>
+        )}
+      </label>
+      <Input
+        id={id}
+        type="file"
+        accept={accept ?? "image/*"}
+        className="hidden"
+        disabled={disabled || uploading}
+        onChange={handleImageUpload}
+      />
+    </div>
+  );
+};
 
 const CustomFormField = <T extends FieldValues>(props: CustomFormFieldProps<T>) => {
   if (props.fieldType === formFieldTypes.ALERTDIALOG) {
@@ -279,37 +380,14 @@ const CustomFormField = <T extends FieldValues>(props: CustomFormFieldProps<T>) 
               ) : null}
 
               {fieldType === formFieldTypes.IMAGE_UPLOADER ? (
-                <div className="rounded-2xl border border-dashed border-white/15 bg-white/6 p-4">
-                  <label
-                    htmlFor={String(name)}
-                    className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-8 text-center"
-                  >
-                    <HugeiconsIcon icon={ImageIcon} strokeWidth={2} className="size-8 text-amber-300" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-stone-100">
-                        {placeholder ?? "Upload an image"}
-                      </p>
-                      <p className="text-xs text-stone-400">
-                        PNG, JPG, or WebP supported
-                      </p>
-                    </div>
-                  </label>
-                  <Input
-                    id={String(name)}
-                    type="file"
-                    accept={accept ?? "image/*"}
-                    className="hidden"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0] ?? null;
-                      field.onChange(file);
-                    }}
-                  />
-                  {field.value && typeof field.value === "object" && "name" in (field.value as object) ? (
-                    <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-stone-300">
-                      Selected: {(field.value as any).name}
-                    </div>
-                  ) : null}
-                </div>
+                <CloudinaryImageUploader
+                  id={String(name)}
+                  value={field.value}
+                  placeholder={placeholder}
+                  accept={accept}
+                  disabled={disabled}
+                  onChange={(uploadedUrl) => field.onChange(uploadedUrl)}
+                />
               ) : null}
 
               {fieldType === formFieldTypes.SKELETON && renderSkeleton ? (

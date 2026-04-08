@@ -4,7 +4,8 @@ import { branches } from "@/constants";
 import { Icon } from "@iconify/react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Branches, fetchingBranch } from "@/lib/actions";
 
 // const createMapEmbedUrl = (latitude: number, longitude: number) => {
 //   const delta = 0.01;
@@ -21,14 +22,26 @@ const Map = dynamic(() => import("./Map"), {
 });
 
 const BranchLocator = () => {
+  const [items, setItems] = useState<Branches[]>(branches);
   const [selectedBranchId, setSelectedBranchId] = useState(
     branches[0]?.id ?? 1,
   );
 
+  useEffect(() => {
+    const loadBranches = async () => {
+      const response = await fetchingBranch();
+      if (response?.length) {
+        setItems(response);
+        setSelectedBranchId(response[0].id);
+      }
+    };
+
+    void loadBranches();
+  }, []);
+
   const selectedBranch = useMemo(
-    () =>
-      branches.find((branch) => branch.id === selectedBranchId) ?? branches[0],
-    [selectedBranchId],
+    () => items.find((branch) => branch.id === selectedBranchId) ?? items[0],
+    [items, selectedBranchId],
   );
 
   if (!selectedBranch) {
@@ -55,7 +68,7 @@ const BranchLocator = () => {
         </div>
 
         <div className="grid gap-3 xl:grid-cols-3">
-          {branches.map((branch) => (
+          {items.map((branch) => (
             <button
               key={branch.id}
               type="button"

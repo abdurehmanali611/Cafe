@@ -1,10 +1,28 @@
-import { menu } from "@/constants";
+"use client";
+
+import { useEffect, useState } from "react";
+
+import { menu as fallbackMenu } from "@/constants";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import Link from "next/link";
+import { fetchingMenu, Menu } from "@/lib/actions";
 
 const MenuItems = ({ preview = false }: { preview?: boolean }) => {
-  const items = preview ? menu.slice(0, 3) : menu;
+  const [items, setItems] = useState<Menu[]>(fallbackMenu);
+
+  useEffect(() => {
+    const loadMenu = async () => {
+      const response = await fetchingMenu();
+      if (response?.length) {
+        setItems(response);
+      }
+    };
+
+    void loadMenu();
+  }, []);
+
+  const visibleItems = preview ? items.slice(0, 3) : items;
 
   return (
     <section className="cafe-shell">
@@ -34,7 +52,7 @@ const MenuItems = ({ preview = false }: { preview?: boolean }) => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <article
               key={item.id}
               className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/6 shadow-[0_20px_60px_-35px_rgba(0,0,0,0.8)]"
