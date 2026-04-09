@@ -20,6 +20,7 @@ export interface Contacts {
   Phone: string;
   title: string;
   message: string;
+  createdAt?: Date | string;
 }
 
 export interface CreateContact {
@@ -38,6 +39,7 @@ export interface Menu {
   price: number;
   popular: boolean;
   category: string;
+  createdAt?: Date | string;
 }
 
 export interface CreateMenu {
@@ -59,6 +61,7 @@ export interface Gallery {
   image: string;
   title: string;
   message: string;
+  createdAt?: Date | string;
 }
 
 export interface CreateGallery {
@@ -82,6 +85,7 @@ export interface Events {
   location: string;
   featured: boolean;
   maxRegistrants: number;
+  createdAt?: Date | string;
   _count?: {
     registrants: number;
   };
@@ -109,6 +113,7 @@ export interface EventRegistrant {
   email: string;
   phone: string;
   eventId: number;
+  createdAt?: Date | string;
   event?: Events;
 }
 
@@ -133,6 +138,7 @@ export interface Branches {
   latitude: number;
   longitude: number;
   description: string;
+  createdAt?: Date | string;
 }
 
 export interface CreateBranch {

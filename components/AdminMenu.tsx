@@ -21,19 +21,13 @@ const AdminMenu = () => {
       createItem={(values) =>
         creatingMenu({
           ...values,
-          ingredients: String(values.ingredients ?? "")
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean),
+          ingredients: Array.isArray(values.ingredients) ? values.ingredients : [],
         } as never)
       }
       updateItem={(values) =>
         UpdatingMenu({
           ...values,
-          ingredients: String(values.ingredients ?? "")
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean),
+          ingredients: Array.isArray(values.ingredients) ? values.ingredients : [],
         } as never)
       }
       deleteItem={deletingMenu}
@@ -42,13 +36,13 @@ const AdminMenu = () => {
         name: item?.name ?? "",
         image: item?.image ?? "",
         description: item?.description ?? "",
-        ingredients: item?.ingredients?.join(", ") ?? "",
+        ingredients: item?.ingredients ?? [],
         price: item?.price ?? 0,
         popular: item?.popular ?? false,
         category: item?.category ?? "",
       })}
       fields={[
-        { key: "name", label: "Name", placeholder: "Cappuccino" },
+        { key: "name", label: "Name", placeholder: "Cappuccino", fullWidth: true },
         {
           key: "image",
           label: "Image",
@@ -56,12 +50,28 @@ const AdminMenu = () => {
           placeholder: "Upload menu image",
           fullWidth: true,
         },
-        { key: "category", label: "Category", placeholder: "Drink" },
+        {
+          key: "category",
+          label: "Category",
+          fieldType: formFieldTypes.SELECT,
+          placeholder: "Choose a category",
+          options: [
+            { label: "Drink", value: "Drink" },
+            { label: "Main", value: "Main" },
+            { label: "Dessert", value: "Dessert" },
+            { label: "Side", value: "Side" },
+            { label: "Light", value: "Light" },
+          ],
+          fullWidth: true,
+        },
         { key: "price", label: "Price", type: "number", placeholder: "250" },
         {
           key: "ingredients",
           label: "Ingredients",
-          placeholder: "Milk, Coffee, Sugar",
+          fieldType: formFieldTypes.TAG_INPUT,
+          placeholder: "Type an ingredient and press Enter",
+          addPlaceholder: "Press Enter to add another ingredient",
+          fullWidth: true,
         },
         {
           key: "description",

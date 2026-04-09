@@ -18,3 +18,15 @@ export const eventRegistrationForm = z.object({
     phone: z.string().min(7, "Please enter a valid phone number"),
     eventId: z.number().int().positive("Please choose an event"),
 })
+
+export const adminPasswordUpdateForm = z.object({
+    currentPassword: z.string().min(6, "Please enter your current password"),
+    newPassword: z.string().min(8, "New password must be at least 8 characters"),
+    confirmPassword: z.string().min(8, "Please confirm your new password"),
+}).refine((values) => values.newPassword === values.confirmPassword, {
+    message: "New passwords do not match",
+    path: ["confirmPassword"],
+}).refine((values) => values.currentPassword !== values.newPassword, {
+    message: "New password must be different from the current password",
+    path: ["newPassword"],
+})

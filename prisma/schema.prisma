@@ -22,6 +22,7 @@ model Menu {
   price       Float
   popular     Boolean
   category    String
+  createdAt   DateTime @default(now())
 }
 
 model Gallery {
@@ -29,6 +30,7 @@ model Gallery {
   image    String
   title    String
   message  String
+  createdAt DateTime @default(now())
 }
 
 model Events {
@@ -43,6 +45,7 @@ model Events {
   featured    Boolean
   maxRegistrants Int @default(50)
   registrants EventRegistrants[]
+  createdAt   DateTime @default(now())
 }
 
 model EventRegistrants {
@@ -52,6 +55,7 @@ model EventRegistrants {
   phone       String
   event       Events @relation(fields: [eventId], references: [id])
   eventId     Int
+  createdAt   DateTime @default(now())
 }
 
 model Branches {
@@ -64,6 +68,7 @@ model Branches {
   latitude    Float
   longitude   Float
   description String
+  createdAt   DateTime @default(now())
 }
 
 model Contacts {
@@ -72,4 +77,5 @@ model Contacts {
   Phone         String
   title         String
   message       String
+  createdAt     DateTime @default(now())
 }

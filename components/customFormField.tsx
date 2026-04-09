@@ -29,12 +29,14 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import { cn } from "@/lib/utils";
 
 export enum formFieldTypes {
   INPUT = "input",
   CALENDAR = "calendar",
   RADIO_BUTTON = "radioButton",
   SELECT = "select",
+  TAG_INPUT = "tagInput",
   TEXTAREA = "textarea",
   IMAGE_UPLOADER = "imageUploader",
   SKELETON = "skeleton",
@@ -61,6 +63,7 @@ type BaseProps<T extends FieldValues> = {
   options?: SelectOption[];
   className?: string; // Prop enabled for custom styling
   accept?: string;
+  addPlaceholder?: string;
   renderSkeleton?: (field: {
     value: unknown;
     onChange: (value: unknown) => void;
@@ -223,6 +226,7 @@ const CustomFormField = <T extends FieldValues>(props: CustomFormFieldProps<T>) 
     options = [],
     className,
     accept,
+    addPlaceholder,
     renderSkeleton,
   } = props as ControlledProps<T>;
 
@@ -254,6 +258,19 @@ const CustomFormField = <T extends FieldValues>(props: CustomFormFieldProps<T>) 
                   onBlur={field.onBlur}
                   onChange={field.onChange}
                   name={field.name}
+                  className={className}
+                />
+              ) : null}
+
+              {fieldType === formFieldTypes.TAG_INPUT ? (
+                <TagInput
+                  id={String(name)}
+                  disabled={disabled}
+                  placeholder={placeholder}
+                  addPlaceholder={addPlaceholder}
+                  value={Array.isArray(field.value) ? field.value : []}
+                  onBlur={field.onBlur}
+                  onChange={field.onChange}
                   className={className}
                 />
               ) : null}
@@ -403,6 +420,89 @@ const CustomFormField = <T extends FieldValues>(props: CustomFormFieldProps<T>) 
         );
       }}
     />
+  );
+};
+
+const TagInput = ({
+  id,
+  value,
+  placeholder,
+  addPlaceholder,
+  disabled,
+  onChange,
+  onBlur,
+  className,
+}: {
+  id: string;
+  value: string[];
+  placeholder?: string;
+  addPlaceholder?: string;
+  disabled?: boolean;
+  onChange: (value: string[]) => void;
+  onBlur: () => void;
+  className?: string;
+}) => {
+  const [draft, setDraft] = React.useState("");
+
+  const addTag = () => {
+    const nextValue = draft.trim();
+
+    if (!nextValue) {
+      return;
+    }
+
+    if (value.includes(nextValue)) {
+      setDraft("");
+      return;
+    }
+
+    onChange([...value, nextValue]);
+    setDraft("");
+  };
+
+  const removeTag = (tag: string) => {
+    onChange(value.filter((item) => item !== tag));
+  };
+
+  return (
+    <div className={cn("w-full space-y-3", className)}>
+      {value.length ? (
+        <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-white/5 p-3">
+          {value.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => removeTag(tag)}
+              className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-400/10 px-3 py-1 text-sm text-amber-100 transition hover:bg-amber-400/20"
+            >
+              <span>{tag}</span>
+              <span className="text-amber-300/80">x</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <Input
+        id={id}
+        type="text"
+        disabled={disabled}
+        value={draft}
+        placeholder={value.length ? addPlaceholder ?? "Add another ingredient" : placeholder}
+        onBlur={onBlur}
+        onChange={(event) => setDraft(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            addTag();
+          }
+
+          if (event.key === "Backspace" && !draft && value.length) {
+            event.preventDefault();
+            onChange(value.slice(0, -1));
+          }
+        }}
+        className="w-full"
+      />
+    </div>
   );
 };
 

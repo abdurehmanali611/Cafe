@@ -154,6 +154,15 @@
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
   }
 
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
   .glass-panel {
     @apply border border-white/50 bg-white/70 backdrop-blur-xl shadow-[0_20px_60px_-25px_rgba(84,53,30,0.35)];
   }

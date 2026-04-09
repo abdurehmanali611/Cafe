@@ -83,33 +83,34 @@ const EventReservationDrawer = ({ event }: EventReservationDrawerProps) => {
           {isFull ? "Fully Booked" : "Reserve"}
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="w-200 mx-50">
-        <DrawerHeader>
+      <DrawerContent className="mx-auto w-full max-w-3xl">
+        <DrawerHeader className="shrink-0">
           <DrawerTitle>Reserve Your Spot</DrawerTitle>
           <DrawerDescription>
             Save a seat for {event.title} at {event.location}.
           </DrawerDescription>
         </DrawerHeader>
-        <form onSubmit={onSubmit} className="px-4 pb-4">
-          <FieldSet className="rounded-[2rem] border border-white/10 bg-stone-950/20 p-5 items-center">
+        <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+            <FieldSet className="items-center rounded-[2rem] border border-white/10 bg-stone-950/20 p-5">
             <FieldTitle className="text-base font-medium text-stone-100">
               Reservation Details
             </FieldTitle>
             <FieldDescription className="text-stone-400">
               Ticket price: {event.ticketPrice} ETB
             </FieldDescription>
-            <FieldDescription className="text-stone-400">
-              {remainingSeats} of {event.maxRegistrants} seats remaining
-            </FieldDescription>
-            <FieldGroup className="gap-4 pt-4 items-center">
-              <div className="flex items-center gap-6">
+              <FieldDescription className="text-stone-400">
+                {remainingSeats} of {event.maxRegistrants} seats remaining
+              </FieldDescription>
+              <FieldGroup className="items-center gap-4 pt-4">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
                 <CustomFormField
                   control={form.control}
                   name="name"
                   fieldType={formFieldTypes.INPUT}
                   label="Full Name"
                   placeholder="Abdur Rahman"
-                  className="w-64 rounded-md"
+                  className="w-full rounded-md md:w-64"
                 />
                 <CustomFormField
                   control={form.control}
@@ -118,20 +119,21 @@ const EventReservationDrawer = ({ event }: EventReservationDrawerProps) => {
                   type="email"
                   label="Email"
                   placeholder="you@example.com"
-                  className="w-64 rounded-md"
+                  className="w-full rounded-md md:w-64"
                 />
-              </div>
-              <CustomFormField
-                control={form.control}
-                name="phone"
-                fieldType={formFieldTypes.PHONE_INPUT}
-                label="Phone Number"
-                placeholder="+251 91 234 5678"
-                className="w-64 rounded-md"
-              />
-            </FieldGroup>
-          </FieldSet>
-          <DrawerFooter className="px-0">
+                </div>
+                <CustomFormField
+                  control={form.control}
+                  name="phone"
+                  fieldType={formFieldTypes.PHONE_INPUT}
+                  label="Phone Number"
+                  placeholder="+251 91 234 5678"
+                  className="w-full rounded-md md:w-64"
+                />
+              </FieldGroup>
+            </FieldSet>
+          </div>
+          <DrawerFooter className="shrink-0 border-t border-white/10 bg-popover/95 px-4 pb-4 pt-3 backdrop-blur">
             <Button
               type="submit"
               disabled={isFull}

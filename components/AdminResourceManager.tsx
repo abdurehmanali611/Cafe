@@ -2,6 +2,7 @@
 
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { Icon } from "@iconify/react";
 
 import CustomFormField, { formFieldTypes } from "@/components/customFormField";
 import {
@@ -51,6 +52,7 @@ type ResourceField = {
   fieldType?: formFieldTypes;
   type?: string;
   placeholder?: string;
+  addPlaceholder?: string;
   description?: string;
   options?: ResourceOption[];
   className?: string;
@@ -100,6 +102,10 @@ const serializeValues = (fields: ResourceField[], values: Record<string, unknown
         return [field.key, rawValue ? new Date(String(rawValue)).toISOString() : null];
       }
 
+      if (effectiveFieldType === formFieldTypes.TAG_INPUT) {
+        return [field.key, Array.isArray(rawValue) ? rawValue : []];
+      }
+
       return [field.key, rawValue];
     }),
   );
@@ -131,6 +137,20 @@ const AdminResourceManager = <T extends { id: number }>({
   });
 
   const isEditing = useMemo(() => Boolean(editingItem), [editingItem]);
+  const fieldLayout = useMemo(
+    () =>
+      fields.map((field, index) => {
+        const nextField = fields[index + 1];
+        const shouldSpanFull =
+          Boolean(field.fullWidth) || !nextField || Boolean(nextField.fullWidth);
+
+        return {
+          ...field,
+          shouldSpanFull,
+        };
+      }),
+    [fields],
+  );
 
   const loadItems = useCallback(async (showLoading = true) => {
     if (showLoading) {
@@ -191,11 +211,15 @@ const AdminResourceManager = <T extends { id: number }>({
   };
 
   return (
-    <Card className="border-white/10 bg-slate-950/40">
+    <Card className="border-white/10 bg-slate-950/40 text-white shadow-[0_24px_60px_-38px_rgba(0,0,0,0.8)]">
       <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <CardTitle className="text-white">{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-300/15 bg-amber-400/10 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-amber-200">
+            <Icon icon="mdi:briefcase-outline" className="text-sm" />
+            Admin Manager
+          </div>
+          <CardTitle className="text-2xl text-white">{title}</CardTitle>
+          <CardDescription className="text-stone-400">{description}</CardDescription>
         </div>
         {!readOnly && createItem ? (
           <Button
@@ -208,16 +232,16 @@ const AdminResourceManager = <T extends { id: number }>({
       </CardHeader>
 
       <CardContent>
-        <div className="overflow-hidden rounded-3xl border border-white/10">
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-black/10">
           <Table>
             <TableHeader className="bg-white/5">
               <TableRow className="border-white/10 hover:bg-white/5">
                 {columns.map((column) => (
-                  <TableHead key={column.key} className={column.className}>
+                  <TableHead key={column.key} className={`text-stone-300 ${column.className ?? ""}`}>
                     {column.label}
                   </TableHead>
                 ))}
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right text-stone-300">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -237,14 +261,14 @@ const AdminResourceManager = <T extends { id: number }>({
                 items.map((item) => (
                   <TableRow key={item.id} className="border-white/10 hover:bg-white/5">
                     {columns.map((column) => (
-                      <TableCell key={column.key} className={column.className}>
+                      <TableCell key={column.key} className={`text-stone-200 ${column.className ?? ""}`}>
                         {column.render(item)}
                       </TableCell>
                     ))}
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         {!readOnly && updateItem ? (
-                          <Button variant="outline" onClick={() => openEditSheet(item)}>
+                          <Button variant="outline" onClick={() => openEditSheet(item)} className="border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white">
                             Edit
                           </Button>
                         ) : null}
@@ -267,17 +291,17 @@ const AdminResourceManager = <T extends { id: number }>({
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="right" className="w-full overflow-y-auto border-white/10 bg-slate-950 text-white sm:max-w-2xl">
           <SheetHeader>
-            <SheetTitle>{isEditing ? `Edit ${title}` : createLabel}</SheetTitle>
+            <SheetTitle className="text-white">{isEditing ? `Edit ${title}` : createLabel}</SheetTitle>
             <SheetDescription>
               Update the details below and save your changes.
             </SheetDescription>
           </SheetHeader>
           <form onSubmit={handleSubmit} className="space-y-6 px-6 pb-6">
             <div className="grid gap-4 md:grid-cols-2">
-              {fields.map((field) => (
+              {fieldLayout.map((field) => (
                 <div
                   key={field.key}
-                  className={field.fullWidth ? "md:col-span-2" : undefined}
+                  className={field.shouldSpanFull ? "md:col-span-2" : undefined}
                 >
                   <CustomFormField
                     control={form.control}
@@ -285,6 +309,7 @@ const AdminResourceManager = <T extends { id: number }>({
                     fieldType={field.fieldType ?? formFieldTypes.INPUT}
                     label={field.label}
                     placeholder={field.placeholder}
+                    addPlaceholder={field.addPlaceholder}
                     description={field.description}
                     type={field.type}
                     options={field.options}

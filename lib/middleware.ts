@@ -1,6 +1,6 @@
-import { verifyToken } from "./auth";
+import { type AdminTokenPayload, verifyToken } from "./auth";
 
-export function requireAuth(req: Request) {
+export function requireAuth(req: Request): AdminTokenPayload {
   const authHeader = req.headers.get("authorization");
 
   if (!authHeader) {
